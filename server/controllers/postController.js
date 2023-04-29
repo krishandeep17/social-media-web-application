@@ -1,101 +1,80 @@
 import Post from "../models/postModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
-const getAllPosts = async (req, res) => {
-  try {
-    const posts = await Post.find();
+const getAllPosts = catchAsync(async (req, res, next) => {
+  const posts = await Post.find();
 
-    res.status(200).json({
-      status: "success",
-      results: posts.length,
-      data: {
-        posts,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: "fail",
-      message: error,
-    });
+  res.status(200).json({
+    status: "success",
+    results: posts.length,
+    data: {
+      posts,
+    },
+  });
+});
+
+const createPost = catchAsync(async (req, res, next) => {
+  // const { description, photo, like } = req.body;
+
+  const post = await Post.create(req.body);
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      post,
+    },
+  });
+});
+
+const getPost = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const post = await Post.findById(id);
+
+  if (!post) {
+    return next(new AppError("No post find with that ID", 404));
   }
-};
 
-const createPost = async (req, res) => {
-  try {
-    // const { description, photo, like } = req.body;
+  res.status(200).json({
+    status: "success",
+    data: {
+      post,
+    },
+  });
+});
 
-    const post = await Post.create(req.body);
+const updatePost = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  // const { description, photo, like } = req.body;
 
-    res.status(201).json({
-      status: "success",
-      data: {
-        post,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error,
-    });
+  const post = await Post.findByIdAndUpdate(id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!post) {
+    return next(new AppError("No post find with that ID", 404));
   }
-};
 
-const getPost = async (req, res) => {
-  try {
-    const { id } = req.params;
+  res.status(200).json({
+    status: "success",
+    data: {
+      post,
+    },
+  });
+});
 
-    const post = await Post.findById(id);
+const deletePost = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        post,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: "fail",
-      message: error,
-    });
+  const post = await Post.findByIdAndDelete(id);
+
+  if (!post) {
+    return next(new AppError("No post find with that ID", 404));
   }
-};
 
-const updatePost = async (req, res) => {
-  try {
-    const { id } = req.params;
-    // const { description, photo, like } = req.body;
-
-    const post = await Post.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        post,
-      },
-    });
-  } catch (error) {
-    res.status(404).json({
-      status: "fail",
-      message: error,
-    });
-  }
-};
-
-const deletePost = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await Post.findByIdAndDelete(id);
-
-    res.status(204).json({ status: "success", data: null });
-  } catch (error) {
-    res.status(404).json({
-      status: "fail",
-      message: error,
-    });
-  }
-};
+  res.status(204).json({ status: "success", data: null });
+});
 
 export { getAllPosts, createPost, getPost, updatePost, deletePost };
