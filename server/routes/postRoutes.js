@@ -1,4 +1,5 @@
 import express from "express";
+import { authMiddleware } from "../controllers/authController.js";
 
 import {
   getAllPosts,
@@ -9,6 +10,8 @@ import {
 } from "../controllers/postController.js";
 
 const router = express.Router();
+
+router.use(authMiddleware);
 
 router.route("/").get(getAllPosts).post(createPost);
 
