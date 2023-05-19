@@ -7,10 +7,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please tell us your first name"],
       trim: true,
-      validate: [
-        validator.isAlpha,
-        "First name must contain only alphabetic characters",
-      ],
+      validate: [validator.isAlpha, "First name must contain only letters"],
       minlength: [3, "First name must contain at least 3 characters"],
       maxlength: [30, "First name must not exceed 30 characters"],
     },
@@ -18,10 +15,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please tell us your last name"],
       trim: true,
-      validate: [
-        validator.isAlpha,
-        "Last name must contain only alphabetic characters",
-      ],
+      validate: [validator.isAlpha, "Last name must contain only letters"],
       minlength: [3, "Last name must contain at least 3 characters"],
       maxlength: [30, "Last name must not exceed 30 characters"],
     },
@@ -30,8 +24,8 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please provide your username"],
       trim: true,
       validate: [
-        validator.isAlpha,
-        "Username must contain only alphabetic characters",
+        validator.isAlphanumeric,
+        "Username must contain only letters and numbers",
       ],
       minlength: [3, "Username must contain at least 3 characters"],
       maxlength: [30, "Username must not exceed 30 characters"],
@@ -60,9 +54,10 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
-    avatar: {
+    profilePhoto: {
       type: String,
-      default: "",
+      default:
+        "https://res.cloudinary.com/cloud4kd/image/upload/v1684419619/FriendsPlace/avatars/default_pic_tp3s3n.png",
     },
     coverPhoto: String,
     gender: {

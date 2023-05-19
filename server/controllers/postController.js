@@ -1,6 +1,7 @@
 import Post from "../models/postModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { cloudinary, upload } from "../utils/multerCloudinary.js";
 
 const getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find();
@@ -14,10 +15,49 @@ const getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-const createPost = catchAsync(async (req, res, next) => {
-  // const { description, photo, like } = req.body;
+const getPostImages = upload.single("image");
 
-  const post = await Post.create(req.body);
+const uploadPostImages = (req, res, next) => {
+  if (!req.file) return next();
+
+  // Upload file to Cloudinary
+  cloudinary.uploader
+    .upload_stream(
+      {
+        resource_type: "image",
+        folder: `FriendsPlace/${req.user.id}/posts`,
+        transformation: [
+          { effect: "improve", width: 1200, height: 1200, crop: "limit" },
+          { quality: "auto" },
+          { fetch_format: "auto" },
+        ],
+      },
+      (error, result) => {
+        if (error) {
+          return next(
+            new AppError("An error occurred during image upload.", 500)
+          );
+        }
+
+        // Pass the uploaded image URL to req.body.image
+        req.body.image = result.secure_url;
+
+        next();
+      }
+    )
+    .end(req.file.buffer);
+};
+
+const createPost = catchAsync(async (req, res, next) => {
+  const { text, image } = req.body;
+
+  const user = req.user.id;
+
+  const post = await Post.create({
+    text,
+    image,
+    user,
+  });
 
   res.status(201).json({
     status: "success",
@@ -77,4 +117,12 @@ const deletePost = catchAsync(async (req, res, next) => {
   res.status(204).json({ status: "success", data: null });
 });
 
-export { getAllPosts, createPost, getPost, updatePost, deletePost };
+export {
+  getAllPosts,
+  getPostImages,
+  uploadPostImages,
+  createPost,
+  getPost,
+  updatePost,
+  deletePost,
+};

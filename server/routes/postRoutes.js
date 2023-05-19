@@ -1,8 +1,10 @@
 import express from "express";
-import { authMiddleware } from "../controllers/authController.js";
 
+import { authMiddleware } from "../controllers/authController.js";
 import {
   getAllPosts,
+  getPostImages,
+  uploadPostImages,
   createPost,
   getPost,
   updatePost,
@@ -13,7 +15,10 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.route("/").get(getAllPosts).post(createPost);
+router
+  .route("/")
+  .get(getAllPosts)
+  .post(getPostImages, uploadPostImages, createPost);
 
 router.route("/:id").get(getPost).patch(updatePost).delete(deletePost);
 

@@ -16,7 +16,18 @@ const signToken = (payload, expiresIn) =>
 const verifyToken = (token) => jwt.verify(token, process.env.JWT_SECRET);
 
 const createSendToken = (user, res) => {
-  const token = signToken({ id: user._id }, "7d");
+  const token = signToken({ id: user._id }, "30d");
+
+  const cookieOptions = {
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === "production") {
+    cookieOptions.secure = true;
+  }
+
+  res.cookie("jwt", token, cookieOptions);
 
   res.status(200).json({
     status: "success",

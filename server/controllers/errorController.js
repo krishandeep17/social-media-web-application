@@ -1,3 +1,4 @@
+import multer from "multer";
 import AppError from "../utils/appError.js";
 
 const handleCastError = (err) => {
@@ -16,6 +17,11 @@ const handleValidationError = (err) => {
   const errors = Object.values(err.errors).map((el) => el.message);
   const message = `Invalid input data. ${errors.join(". ")}`;
 
+  return new AppError(message, 400);
+};
+
+const handleMulterError = (err) => {
+  const message = `Image upload failed: ${err.message}`;
   return new AppError(message, 400);
 };
 
@@ -59,6 +65,11 @@ const errorController = (err, req, res, next) => {
     if (error.name === "CastError") error = handleCastError(error);
     if (error.code === 11000) error = handleDuplicateFields(error);
     if (error.name === "ValidationError") error = handleValidationError(error);
+
+    if (err instanceof multer.MulterError) {
+      // Multer error
+      res.status(400).send("File upload failed: " + err.message);
+    }
 
     sendErrorProd(error, res);
   }

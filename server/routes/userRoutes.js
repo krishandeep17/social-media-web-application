@@ -1,17 +1,6 @@
 import express from "express";
 
 import {
-  getMe,
-  updateMe,
-  deleteMe,
-  getAllUsers,
-  createUser,
-  getUser,
-  updateUser,
-  deleteUser,
-} from "../controllers/userController.js";
-
-import {
   signup,
   verifyEmail,
   login,
@@ -21,6 +10,20 @@ import {
   resetPassword,
   updatePassword,
 } from "../controllers/authController.js";
+import {
+  getMe,
+  getUserImages,
+  uploadProfilePhoto,
+  uploadCoverPhoto,
+  updateMe,
+  updateMyDetails,
+  deleteMe,
+  getAllUsers,
+  createUser,
+  getUser,
+  updateUser,
+  deleteUser,
+} from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -33,8 +36,15 @@ router.patch("/resetPassword/:resetToken", resetPassword);
 router.use(authMiddleware);
 
 router.get("/me", getMe, getUser);
-router.patch("/updateMe", updateMe);
+router.patch(
+  "/updateMe",
+  getUserImages,
+  uploadProfilePhoto,
+  uploadCoverPhoto,
+  updateMe
+);
 router.patch("/updateMyPassword", updatePassword);
+router.patch("/updateMyDetails", updateMyDetails);
 router.delete("/deleteMe", deleteMe, deleteUser);
 
 router.use(roleMiddleware("admin"));
