@@ -1,81 +1,18 @@
 import User from "../models/userModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
-import { cloudinary, upload } from "../utils/multerCloudinary.js";
 
-// For users
+// @desc    Get Current User
+// @route   GET /api/v1/users/me
+// @access  Private
 const getMe = catchAsync(async (req, res, next) => {
   req.params.id = req.user.id;
   next();
 });
 
-const getUserImages = upload.fields([
-  { name: "profilePicture", maxCount: 1 },
-  { name: "coverPicture", maxCount: 1 },
-]);
-
-const uploadProfilePhoto = (req, res, next) => {
-  if (!req.files.profilePicture) return next();
-
-  // Upload file to Cloudinary
-  cloudinary.uploader
-    .upload_stream(
-      {
-        resource_type: "image",
-        folder: `FriendsPlace/${req.user.id}/profile_pictures`,
-        transformation: [
-          { effect: "improve", width: 320, height: 320, crop: "fill" },
-          { quality: "auto" },
-          { fetch_format: "auto" },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          return next(
-            new AppError("An error occurred during profile photo upload.", 500)
-          );
-        }
-
-        // Pass the uploaded image URL to req.body.profilePicture
-        req.body.profilePicture = result.secure_url;
-
-        next();
-      }
-    )
-    .end(req.files.profilePicture[0].buffer);
-};
-
-const uploadCoverPhoto = (req, res, next) => {
-  if (!req.files.coverPicture) return next();
-
-  // Upload file to Cloudinary
-  cloudinary.uploader
-    .upload_stream(
-      {
-        resource_type: "image",
-        folder: `FriendsPlace/${req.user.id}/cover_pictures`,
-        transformation: [
-          { effect: "improve", width: 851, height: 315, crop: "fill" },
-          { quality: "auto" },
-          { fetch_format: "auto" },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          return next(
-            new AppError("An error occurred during cover photo upload.", 500)
-          );
-        }
-
-        // Pass the uploaded image URL to req.body.coverPicture
-        req.body.coverPicture = result.secure_url;
-
-        next();
-      }
-    )
-    .end(req.files.coverPicture[0].buffer);
-};
-
+// @desc    Update Current User
+// @route   PATCH /api/v1/users/updateMe
+// @access  Private
 const updateMe = catchAsync(async (req, res, next) => {
   const {
     firstName,
@@ -120,6 +57,9 @@ const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Update Current User Details
+// @route   PATCH /api/v1/users/updateMyDetails
+// @access  Private
 const updateMyDetails = catchAsync(async (req, res, next) => {
   const {
     bio,
@@ -170,12 +110,17 @@ const updateMyDetails = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Delete Current User
+// @route   DELETE /api/v1/users/me
+// @access  Private
 const deleteMe = catchAsync(async (req, res, next) => {
   req.params.id = req.user.id;
   next();
 });
 
-// For admin
+// @desc    Get All The Users
+// @route   GET /api/v1/users
+// @access  Admin
 const getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
@@ -188,6 +133,9 @@ const getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Create New User
+// @route   POST /api/v1/users
+// @access  Admin
 const createUser = catchAsync(async (req, res, next) => {
   const user = await User.create(req.body);
 
@@ -199,6 +147,9 @@ const createUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Get User
+// @route   GET /api/v1/users
+// @access  Admin
 const getUser = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id);
 
@@ -214,6 +165,9 @@ const getUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Update User
+// @route   PATCH /api/v1/users/:userId
+// @access  Admin
 const updateUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -232,6 +186,9 @@ const updateUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Delete User
+// @route   DELETE /api/v1/users/:userId
+// @access  Admin
 const deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
 
@@ -247,9 +204,6 @@ const deleteUser = catchAsync(async (req, res, next) => {
 
 export {
   getMe,
-  getUserImages,
-  uploadProfilePhoto,
-  uploadCoverPhoto,
   updateMe,
   updateMyDetails,
   deleteMe,

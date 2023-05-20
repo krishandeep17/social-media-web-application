@@ -68,6 +68,9 @@ const emailVerification = async (user, res) => {
   }
 };
 
+// @desc    Sign Up User & Send Verification Email
+// @route   POST /api/v1/users/signup
+// @access  Public
 const signup = catchAsync(async (req, res, next) => {
   const {
     firstName,
@@ -104,6 +107,9 @@ const signup = catchAsync(async (req, res, next) => {
   await emailVerification(user, res);
 });
 
+// @desc    Verify User's Email
+// @route   PATCH /api/v1/users/verifyEmail/:emailVerifyToken
+// @access  Public
 const verifyEmail = async (req, res, next) => {
   const { emailVerifyToken } = req.params;
 
@@ -134,6 +140,9 @@ const verifyEmail = async (req, res, next) => {
   }
 };
 
+// @desc    Log In User
+// @route   POST /api/v1/users/login
+// @access  Public
 const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -154,63 +163,9 @@ const login = catchAsync(async (req, res, next) => {
   createSendToken(user, res);
 });
 
-// Middleware to check for JWT
-const authMiddleware = catchAsync(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-
-  if (!token) {
-    return next(
-      new AppError("You are not logged in! Please login to get access", 401)
-    );
-  }
-
-  try {
-    const decoded = verifyToken(token);
-
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
-      return next(
-        new AppError(
-          "The user belonging to this token is no longer exist.",
-          401
-        )
-      );
-    }
-
-    const tokenIssuedAt = decoded.iat;
-    const passwordUpdatedAt = Math.round(
-      currentUser.passwordChangeAt.getTime() / 1000
-    );
-
-    if (passwordUpdatedAt > tokenIssuedAt) {
-      return next(
-        new AppError("User recently changed password! Please login again.", 401)
-      );
-    }
-
-    req.user = currentUser;
-    next();
-  } catch (error) {
-    return next(new AppError("Invalid token. Please login again.", 401));
-  }
-});
-
-// Middleware to check for roles
-const roleMiddleware = (roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) {
-    return next(
-      new AppError("You do not have permission to perform this action", 403)
-    );
-  }
-  next();
-};
-
+// @desc    Forgot Password - Send Password Reset Token To Email
+// @route   POST /api/v1/users/forgotPassword
+// @access  Public
 const forgotPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
@@ -246,6 +201,9 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
+// @desc    Reset Password
+// @route   PATCH /api/v1/users/resetPassword/:resetToken
+// @access  Public
 const resetPassword = catchAsync(async (req, res, next) => {
   const { resetToken } = req.params;
   const { password } = req.body;
@@ -279,6 +237,9 @@ const resetPassword = catchAsync(async (req, res, next) => {
   }
 });
 
+// @desc    Update Current User Password
+// @route   PATCH /api/v1/users/updateMyPassword
+// @access  Public
 const updatePassword = catchAsync(async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
 
@@ -309,11 +270,10 @@ const updatePassword = catchAsync(async (req, res, next) => {
 });
 
 export {
+  verifyToken,
   signup,
   verifyEmail,
   login,
-  authMiddleware,
-  roleMiddleware,
   forgotPassword,
   resetPassword,
   updatePassword,

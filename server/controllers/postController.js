@@ -1,7 +1,6 @@
 import Post from "../models/postModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
-import { cloudinary, upload } from "../utils/multerCloudinary.js";
 
 // @desc    Get All The Posts
 // @route   GET /api/v1/posts
@@ -20,39 +19,9 @@ const getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-const getSingleImage = upload.single("image");
-
-const uploadPostImages = (req, res, next) => {
-  if (!req.file) return next();
-
-  // Upload file to Cloudinary
-  cloudinary.uploader
-    .upload_stream(
-      {
-        resource_type: "image",
-        folder: `FriendsPlace/${req.user.id}/post_images`,
-        transformation: [
-          { effect: "improve", width: 1200, height: 1200, crop: "limit" },
-          { quality: "auto" },
-          { fetch_format: "auto" },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          return next(
-            new AppError("An error occurred during image upload.", 500)
-          );
-        }
-
-        // Pass the uploaded image URL to req.body.image
-        req.body.image = result.secure_url;
-
-        next();
-      }
-    )
-    .end(req.file.buffer);
-};
-
+// @desc    Create New Post
+// @route   POST /api/v1/posts
+// @access  Private
 const createPost = catchAsync(async (req, res, next) => {
   const { text, image } = req.body;
 
@@ -72,6 +41,9 @@ const createPost = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Get Post
+// @route   GET /api/v1/posts/:postId
+// @access  Private
 const getPost = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
@@ -89,6 +61,9 @@ const getPost = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Update Post
+// @route   PATCH /api/v1/posts/:postId
+// @access  Private
 const updatePost = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { text } = req.body;
@@ -114,6 +89,9 @@ const updatePost = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Delete Post
+// @route   DELETE /api/v1/posts/:postId
+// @access  Private
 const deletePost = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
@@ -126,40 +104,9 @@ const deletePost = catchAsync(async (req, res, next) => {
   res.status(204).json({ status: "success", data: null });
 });
 
-const uploadCommentImage = (req, res, next) => {
-  if (!req.file) return next();
-
-  // Upload file to Cloudinary
-  cloudinary.uploader
-    .upload_stream(
-      {
-        resource_type: "image",
-        folder: `FriendsPlace/${req.user.id}/post_images/${req.params.id}/comment_images`,
-        transformation: [
-          { effect: "improve", width: 1200, height: 1200, crop: "limit" },
-          { quality: "auto" },
-          { fetch_format: "auto" },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          return next(
-            new AppError(
-              "An error occurred during image upload in comment.",
-              500
-            )
-          );
-        }
-
-        // Pass the uploaded image URL to req.body.image
-        req.body.image = result.secure_url;
-
-        next();
-      }
-    )
-    .end(req.file.buffer);
-};
-
+// @desc    Comment On Post
+// @route   PATCH /api/v1/posts/:postId/comment
+// @access  Private
 const commentOnPost = catchAsync(async (req, res, next) => {
   const postId = req.params.id;
   const { comment, image } = req.body;
@@ -193,12 +140,9 @@ const commentOnPost = catchAsync(async (req, res, next) => {
 
 export {
   getAllPosts,
-  getSingleImage,
-  uploadPostImages,
   createPost,
   getPost,
   updatePost,
   deletePost,
-  uploadCommentImage,
   commentOnPost,
 };

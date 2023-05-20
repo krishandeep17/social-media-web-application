@@ -1,31 +1,33 @@
 import express from "express";
 
-import { authMiddleware } from "../controllers/authController.js";
+import { protect } from "../middleware/authMiddleware.js";
+import {
+  multerSingleUpload,
+  uploadPostImage,
+  uploadCommentImage,
+} from "../middleware/postMiddleware.js";
 import {
   getAllPosts,
-  getSingleImage,
-  uploadPostImages,
   createPost,
   getPost,
   updatePost,
   deletePost,
-  uploadCommentImage,
   commentOnPost,
 } from "../controllers/postController.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
+router.use(protect);
 
 router
   .route("/")
   .get(getAllPosts)
-  .post(getSingleImage, uploadPostImages, createPost);
+  .post(multerSingleUpload, uploadPostImage, createPost);
 
 router.route("/:id").get(getPost).patch(updatePost).delete(deletePost);
 
 router
   .route("/:id/comment")
-  .patch(getSingleImage, uploadCommentImage, commentOnPost);
+  .patch(multerSingleUpload, uploadCommentImage, commentOnPost);
 
 export default router;
