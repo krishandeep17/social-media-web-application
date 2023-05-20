@@ -66,10 +66,8 @@ const errorController = (err, req, res, next) => {
     if (error.code === 11000) error = handleDuplicateFields(error);
     if (error.name === "ValidationError") error = handleValidationError(error);
 
-    if (err instanceof multer.MulterError) {
-      // Multer error
-      res.status(400).send("File upload failed: " + err.message);
-    }
+    // HANDLING MULTER ERROR
+    if (error instanceof multer.MulterError) error = handleMulterError(error);
 
     sendErrorProd(error, res);
   }
