@@ -10,19 +10,19 @@ const getMe = catchAsync(async (req, res, next) => {
 });
 
 const getUserImages = upload.fields([
-  { name: "profilePhoto", maxCount: 1 },
-  { name: "coverPhoto", maxCount: 1 },
+  { name: "profilePicture", maxCount: 1 },
+  { name: "coverPicture", maxCount: 1 },
 ]);
 
 const uploadProfilePhoto = (req, res, next) => {
-  if (!req.files.profilePhoto) return next();
+  if (!req.files.profilePicture) return next();
 
   // Upload file to Cloudinary
   cloudinary.uploader
     .upload_stream(
       {
-        resource_type: "auto",
-        folder: `FriendsPlace/${req.user.id}/profilePhoto`,
+        resource_type: "image",
+        folder: `FriendsPlace/${req.user.id}/profile_pictures`,
         transformation: [
           { effect: "improve", width: 320, height: 320, crop: "fill" },
           { quality: "auto" },
@@ -36,24 +36,24 @@ const uploadProfilePhoto = (req, res, next) => {
           );
         }
 
-        // Pass the uploaded image URL to req.body.profilePhoto
-        req.body.profilePhoto = result.secure_url;
+        // Pass the uploaded image URL to req.body.profilePicture
+        req.body.profilePicture = result.secure_url;
 
         next();
       }
     )
-    .end(req.files.profilePhoto[0].buffer);
+    .end(req.files.profilePicture[0].buffer);
 };
 
-const uploadCoverPhoto = async (req, res, next) => {
-  if (!req.files.coverPhoto) return next();
+const uploadCoverPhoto = (req, res, next) => {
+  if (!req.files.coverPicture) return next();
 
   // Upload file to Cloudinary
   cloudinary.uploader
     .upload_stream(
       {
-        resource_type: "auto",
-        folder: `FriendsPlace/${req.user.id}/coverPhoto`,
+        resource_type: "image",
+        folder: `FriendsPlace/${req.user.id}/cover_pictures`,
         transformation: [
           { effect: "improve", width: 851, height: 315, crop: "fill" },
           { quality: "auto" },
@@ -67,13 +67,13 @@ const uploadCoverPhoto = async (req, res, next) => {
           );
         }
 
-        // Pass the uploaded image URL to req.body.coverPhoto
-        req.body.coverPhoto = result.secure_url;
+        // Pass the uploaded image URL to req.body.coverPicture
+        req.body.coverPicture = result.secure_url;
 
         next();
       }
     )
-    .end(req.files.coverPhoto[0].buffer);
+    .end(req.files.coverPicture[0].buffer);
 };
 
 const updateMe = catchAsync(async (req, res, next) => {
@@ -85,8 +85,8 @@ const updateMe = catchAsync(async (req, res, next) => {
     birthYear,
     birthMonth,
     birthDate,
-    profilePhoto,
-    coverPhoto,
+    profilePicture,
+    coverPicture,
   } = req.body;
 
   const user = await User.findByIdAndUpdate(
@@ -99,8 +99,8 @@ const updateMe = catchAsync(async (req, res, next) => {
       birthYear,
       birthMonth,
       birthDate,
-      profilePhoto,
-      coverPhoto,
+      profilePicture,
+      coverPicture,
     },
     {
       new: true,

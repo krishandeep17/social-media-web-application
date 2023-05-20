@@ -54,12 +54,12 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "user",
     },
-    profilePhoto: {
+    profilePicture: {
       type: String,
       default:
         "https://res.cloudinary.com/cloud4kd/image/upload/v1684419619/FriendsPlace/avatars/default_pic_tp3s3n.png",
     },
-    coverPhoto: String,
+    coverPicture: String,
     gender: {
       type: String,
       required: [true, "Please select a gender"],
