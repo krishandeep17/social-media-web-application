@@ -12,7 +12,7 @@ import {
   getPost,
   updatePost,
   deletePost,
-  commentOnPost,
+  // commentOnPost,
 } from "../controllers/postController.js";
 
 const router = express.Router();
@@ -26,8 +26,10 @@ router
 
 router.route("/:id").get(getPost).patch(updatePost).delete(deletePost);
 
-router
-  .route("/:id/comment")
-  .patch(multerSingleUpload, uploadCommentImage, commentOnPost);
+router.route("/:id/comment").patch(
+  multerSingleUpload,
+  uploadCommentImage
+  // commentOnPost
+);
 
 export default router;

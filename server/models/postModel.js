@@ -29,8 +29,19 @@ const postSchema = new mongoose.Schema(
       },
     ],
   },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
   { timestamps: true }
 );
+
+// Virtual Populate
+postSchema.virtual("reacts", {
+  ref: "React",
+  foreignField: "post",
+  localField: "_id",
+});
 
 const Post = mongoose.model("Post", postSchema);
 

@@ -6,9 +6,9 @@ import AppError from "../utils/appError.js";
 // @route   GET /api/v1/posts
 // @access  Private
 const getAllPosts = catchAsync(async (req, res, next) => {
-  const posts = await Post.find()
-    .populate("user", "firstName lastName username profilePicture gender")
-    .sort({ createdAt: -1 });
+  const posts = await Post.find();
+  // .sort({ createdAt: -1 });
+  // .populate("user", "firstName lastName username profilePicture gender")
 
   res.status(200).json({
     status: "success",
@@ -47,7 +47,7 @@ const createPost = catchAsync(async (req, res, next) => {
 const getPost = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  const post = await Post.findById(id);
+  const post = await Post.findById(id).populate("reacts");
 
   if (!post) {
     return next(new AppError("No post find with that ID", 404));
@@ -57,6 +57,7 @@ const getPost = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       post,
+      // reacts: post.reacts,
     },
   });
 });
@@ -107,36 +108,36 @@ const deletePost = catchAsync(async (req, res, next) => {
 // @desc    Comment On Post
 // @route   PATCH /api/v1/posts/:postId/comment
 // @access  Private
-const commentOnPost = catchAsync(async (req, res, next) => {
-  const postId = req.params.id;
-  const { comment, image } = req.body;
-  const commentBy = req.user.id;
+// const commentOnPost = catchAsync(async (req, res, next) => {
+//   const postId = req.params.id;
+//   const { comment, image } = req.body;
+//   const commentBy = req.user.id;
 
-  const post = await Post.findByIdAndUpdate(
-    postId,
-    {
-      $push: { comments: { comment, image, commentBy } },
-    },
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).populate(
-    "comments.commentBy",
-    "firstName lastName username profilePicture"
-  );
+//   const post = await Post.findByIdAndUpdate(
+//     postId,
+//     {
+//       $push: { comments: { comment, image, commentBy } },
+//     },
+//     {
+//       new: true,
+//       runValidators: true,
+//     }
+//   ).populate(
+//     "comments.commentBy",
+//     "firstName lastName username profilePicture"
+//   );
 
-  if (!post) {
-    return next(new AppError("No post find with that ID", 404));
-  }
+//   if (!post) {
+//     return next(new AppError("No post find with that ID", 404));
+//   }
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      comments: post.comments,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       comments: post.comments,
+//     },
+//   });
+// });
 
 export {
   getAllPosts,
@@ -144,5 +145,5 @@ export {
   getPost,
   updatePost,
   deletePost,
-  commentOnPost,
+  // commentOnPost,
 };

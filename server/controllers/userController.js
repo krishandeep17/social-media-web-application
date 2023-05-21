@@ -148,7 +148,7 @@ const createUser = catchAsync(async (req, res, next) => {
 });
 
 // @desc    Get User
-// @route   GET /api/v1/users
+// @route   GET /api/v1/users/:userId
 // @access  Admin
 const getUser = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.params.id);
