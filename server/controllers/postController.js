@@ -7,8 +7,8 @@ import AppError from "../utils/appError.js";
 // @access  Private
 const getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find();
-  // .sort({ createdAt: -1 });
   // .populate("user", "firstName lastName username profilePicture gender")
+  // .sort({ createdAt: -1 });
 
   res.status(200).json({
     status: "success",
@@ -45,19 +45,16 @@ const createPost = catchAsync(async (req, res, next) => {
 // @route   GET /api/v1/posts/:postId
 // @access  Private
 const getPost = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const post = await Post.findById(id).populate("reacts");
+  const post = await Post.findById(req.params.id).populate("reacts");
 
   if (!post) {
-    return next(new AppError("No post find with that ID", 404));
+    return next(new AppError("Post not found.", 404));
   }
 
   res.status(200).json({
     status: "success",
     data: {
       post,
-      // reacts: post.reacts,
     },
   });
 });
@@ -66,11 +63,10 @@ const getPost = catchAsync(async (req, res, next) => {
 // @route   PATCH /api/v1/posts/:postId
 // @access  Private
 const updatePost = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
   const { text } = req.body;
 
   const post = await Post.findByIdAndUpdate(
-    id,
+    req.params.id,
     { text },
     {
       new: true,
@@ -79,7 +75,7 @@ const updatePost = catchAsync(async (req, res, next) => {
   );
 
   if (!post) {
-    return next(new AppError("No post find with that ID", 404));
+    return next(new AppError("Post not found.", 404));
   }
 
   res.status(200).json({
@@ -94,50 +90,49 @@ const updatePost = catchAsync(async (req, res, next) => {
 // @route   DELETE /api/v1/posts/:postId
 // @access  Private
 const deletePost = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const post = await Post.findByIdAndDelete(id);
+  const post = await Post.findByIdAndDelete(req.params.id);
 
   if (!post) {
-    return next(new AppError("No post find with that ID", 404));
+    return next(new AppError("Post not found.", 404));
   }
 
-  res.status(204).json({ status: "success", data: null });
+  res.status(204).json({
+    status: "success",
+    message: "User removed.",
+  });
 });
 
 // @desc    Comment On Post
 // @route   PATCH /api/v1/posts/:postId/comment
 // @access  Private
-// const commentOnPost = catchAsync(async (req, res, next) => {
-//   const postId = req.params.id;
-//   const { comment, image } = req.body;
-//   const commentBy = req.user.id;
+const commentOnPost = catchAsync(async (req, res, next) => {
+  const { comment, image } = req.body;
 
-//   const post = await Post.findByIdAndUpdate(
-//     postId,
-//     {
-//       $push: { comments: { comment, image, commentBy } },
-//     },
-//     {
-//       new: true,
-//       runValidators: true,
-//     }
-//   ).populate(
-//     "comments.commentBy",
-//     "firstName lastName username profilePicture"
-//   );
+  const post = await Post.findByIdAndUpdate(
+    req.params.id,
+    {
+      $push: { comments: { comment, image, commentBy: req.user.id } },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).populate(
+    "comments.commentBy",
+    "firstName lastName username profilePicture"
+  );
 
-//   if (!post) {
-//     return next(new AppError("No post find with that ID", 404));
-//   }
+  if (!post) {
+    return next(new AppError("Post not found.", 404));
+  }
 
-//   res.status(200).json({
-//     status: "success",
-//     data: {
-//       comments: post.comments,
-//     },
-//   });
-// });
+  res.status(200).json({
+    status: "success",
+    data: {
+      comments: post.comments,
+    },
+  });
+});
 
 export {
   getAllPosts,
@@ -145,5 +140,5 @@ export {
   getPost,
   updatePost,
   deletePost,
-  // commentOnPost,
+  commentOnPost,
 };

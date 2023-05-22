@@ -2,17 +2,32 @@ import React from "../models/reactModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 
-// @desc    React On Post
-// @route   PATCH /api/v1/reacts/postId
+// @desc    Get All Reacts On Post
+// @route   GET /api/v1/posts/:postId/reacts
 // @access  Private
-const reactPost = catchAsync(async (req, res, next) => {
+const getAllPostReacts = catchAsync(async (req, res, next) => {
+  const reacts = await React.find({ post: req.params.postId });
+
+  res.status(200).json({
+    status: "success",
+    result: reacts.length,
+    data: {
+      reacts,
+    },
+  });
+});
+
+// @desc    Create, Update Or Delete React On Post
+// @route   POST /api/v1/posts/:postId/reacts
+// @access  Private
+const createPostReact = catchAsync(async (req, res, next) => {
   const { react } = req.body;
   const post = req.params.postId;
   const user = req.user.id;
 
-  const checkReact = await React.findOne({ post, user });
+  const alreadyReact = await React.findOne({ post, user });
 
-  if (!checkReact) {
+  if (!alreadyReact) {
     const newReact = await React.create({ react, post, user });
 
     res.status(201).json({
@@ -22,13 +37,13 @@ const reactPost = catchAsync(async (req, res, next) => {
       },
     });
   } else {
-    if (checkReact.react === react) {
-      await React.findByIdAndRemove(checkReact._id);
+    if (alreadyReact.react === react) {
+      await React.findByIdAndRemove(alreadyReact._id);
 
       res.status(204).json({ status: "success", data: null });
     } else {
       const updateReact = await React.findByIdAndUpdate(
-        react._id,
+        alreadyReact._id,
         { react },
         {
           new: true,
@@ -46,15 +61,15 @@ const reactPost = catchAsync(async (req, res, next) => {
   }
 });
 
-// @desc    Get All Reacts
+// @desc    Get All The Reacts
 // @route   GET /api/v1/reacts
-// @access  Private
+// @access  Admin
 const getAllReacts = catchAsync(async (req, res, next) => {
   const reacts = await React.find();
 
   res.status(200).json({
     status: "success",
-    result: reacts.length,
+    results: reacts.length,
     data: {
       reacts,
     },
@@ -82,7 +97,7 @@ const getReact = catchAsync(async (req, res, next) => {
   const react = await React.findById(req.params.id);
 
   if (!react) {
-    return next(new AppError("No react find with that ID", 404));
+    return next(new AppError("React not found.", 404));
   }
 
   res.status(200).json({
@@ -103,7 +118,7 @@ const updateReact = catchAsync(async (req, res, next) => {
   });
 
   if (!react) {
-    return next(new AppError("No react find with that ID", 404));
+    return next(new AppError("React not found.", 404));
   }
 
   res.status(200).json({
@@ -121,13 +136,21 @@ const deleteReact = catchAsync(async (req, res, next) => {
   const react = await React.findByIdAndDelete(req.params.id);
 
   if (!react) {
-    return next(new AppError("No react find with that ID", 404));
+    return next(new AppError("React not found.", 404));
   }
 
   res.status(204).json({
     status: "success",
-    data: null,
+    message: "React removed",
   });
 });
 
-export { reactPost, getAllReacts, createReact };
+export {
+  getAllPostReacts,
+  createPostReact,
+  getAllReacts,
+  createReact,
+  getReact,
+  updateReact,
+  deleteReact,
+};

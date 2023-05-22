@@ -1,18 +1,26 @@
 import express from "express";
 
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import {
-  reactPost,
+  getAllPostReacts,
+  createPostReact,
   getAllReacts,
   createReact,
+  getReact,
+  updateReact,
+  deleteReact,
 } from "../controllers/routerController.js";
 
-const router = express.Router();
+// Preserve the req.params values from the parent(post) router
+const router = express.Router({ mergeParams: true });
 
 router.use(protect);
 
-router.route("/").get(getAllReacts).post(createReact);
+router.route("/").get(getAllPostReacts).post(createPostReact);
 
-router.route("/:postId").patch(reactPost);
+router.use(restrictTo("admin"));
+
+router.route("/").get(getAllReacts).post(createReact);
+router.route("/:id").get(getReact).patch(updateReact).delete(deleteReact);
 
 export default router;
