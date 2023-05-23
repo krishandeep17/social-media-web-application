@@ -73,4 +73,19 @@ const uploadCoverPicture = (req, res, next) => {
     .end(req.files.coverPicture[0].buffer);
 };
 
-export { multerUploadImage, uploadProfilePicture, uploadCoverPicture };
+// Midddleware to check user and friend are not same
+const checkUserFriend = (req, res, next) => {
+  if (req.user.id === req.params.id) {
+    return next(
+      new AppError("User and friend must have the different ID.", 400)
+    );
+  }
+  next();
+};
+
+export {
+  multerUploadImage,
+  uploadProfilePicture,
+  uploadCoverPicture,
+  checkUserFriend,
+};

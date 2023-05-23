@@ -5,7 +5,9 @@ import {
   multerUploadImage,
   uploadProfilePicture,
   uploadCoverPicture,
+  checkUserFriend,
 } from "../middleware/userMiddleware.js";
+
 import {
   signup,
   verifyEmail,
@@ -19,6 +21,11 @@ import {
   updateMe,
   updateMyDetails,
   deleteMe,
+  savePost,
+  sendFriendRequest,
+  acceptFriendRequest,
+  deleteFriendRequest,
+  removeFriend,
   getAllUsers,
   createUser,
   getUser,
@@ -47,6 +54,14 @@ router.patch(
 router.patch("/updateMyPassword", updatePassword);
 router.patch("/updateMyDetails", updateMyDetails);
 router.delete("/deleteMe", deleteMe, deleteUser);
+router.patch("/savePost/:postId", savePost);
+
+router.use(checkUserFriend);
+
+router.route("/sendFriendRequest/:receiverId").patch(sendFriendRequest);
+router.route("/acceptFriendRequest/:senderId").patch(acceptFriendRequest);
+router.route("/deleteFriendRequest/:senderId").patch(deleteFriendRequest);
+router.route("/removeFriend/:friendId").patch(removeFriend);
 
 router.use(restrictTo("admin"));
 

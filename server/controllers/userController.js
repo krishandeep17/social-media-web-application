@@ -118,6 +118,152 @@ const deleteMe = catchAsync(async (req, res, next) => {
   next();
 });
 
+// @desc    User Save Post
+// @route   PATCH /api/v1/users/savePost/:postId
+// @access  Private
+const savePost = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    {
+      $push: { savedPosts: { post: req.params.postId } },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).populate("savedPosts.post");
+
+  if (!user) {
+    return next(new AppError("User not found.", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      savedPosts: user.savedPosts,
+    },
+  });
+});
+
+// @desc    Send Or Cancel Friend Request
+// @route   PATCH /api/v1/users/sendFriendRequest/:receiverId
+// @access  Private
+const sendFriendRequest = catchAsync(async (req, res, next) => {
+  const receiver = await User.findById(req.params.receiverId);
+  const sender = await User.findById(req.user.id);
+
+  // Check if the sender is already receiver's friend
+  if (receiver.friends.includes(sender._id)) {
+    return next(new AppError("You are already friend of him/her.", 400));
+  }
+
+  // Check if the user already send friend request and then cancel the request
+  if (receiver.requests.includes(sender._id)) {
+    await receiver.updateOne({
+      $pull: { requests: sender._id },
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Friend request cancel successfully.",
+    });
+  } else {
+    await receiver.updateOne({
+      $push: { requests: sender._id },
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Friend request send successfully.",
+    });
+  }
+});
+
+// @desc    Accept Friend Request
+// @route   PATCH /api/v1/users/acceptFriendRequest/:senderId
+// @access  Private
+const acceptFriendRequest = catchAsync(async (req, res, next) => {
+  const sender = await User.findById(req.params.senderId);
+  const receiver = await User.findById(req.user.id);
+
+  // Check if the user already receiver's friend
+  if (receiver.friends.includes(sender._id)) {
+    return next(new AppError("You are already friend of him/her.", 400));
+  }
+
+  // Check if the user receive friend request
+  if (!receiver.requests.includes(sender._id)) {
+    return next(new AppError("Friend request not found.", 400));
+  }
+
+  await receiver.updateOne({
+    $pull: { requests: sender._id },
+    $push: { friends: sender._id },
+  });
+
+  await sender.updateOne({
+    $push: { friends: receiver._id },
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Friend request accepted.",
+  });
+});
+
+// @desc    Delete Friend Request
+// @route   PATCH /api/v1/users/deleteFriendRequest/:senderId
+// @access  Private
+const deleteFriendRequest = catchAsync(async (req, res, next) => {
+  const sender = await User.findById(req.params.senderId);
+  const receiver = await User.findById(req.user.id);
+
+  // Check if the user already receiver's friend
+  if (receiver.friends.includes(sender._id)) {
+    return next(new AppError("You are already friend of him/her.", 400));
+  }
+
+  // Check if the user receive friend request
+  if (!receiver.requests.includes(sender._id)) {
+    return next(new AppError("Friend request not found.", 400));
+  }
+
+  await receiver.updateOne({
+    $pull: { requests: sender._id },
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Friend request deleted.",
+  });
+});
+
+// @desc    Remove User's Friend
+// @route   PATCH /api/v1/users/removeFriend/:friendId
+// @access  Private
+const removeFriend = catchAsync(async (req, res, next) => {
+  const friend = await User.findById(req.params.friendId);
+  const user = await User.findById(req.user.id);
+
+  // Check if the user has that friend
+  if (!user.friends.includes(friend._id)) {
+    return next(new AppError("You are not friend of him/her.", 400));
+  }
+
+  await user.updateOne({
+    $pull: { friends: friend._id },
+  });
+
+  await friend.updateOne({
+    $pull: { friends: user._id },
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "You are not friends anymore.",
+  });
+});
+
 // @desc    Get All The Users
 // @route   GET /api/v1/users
 // @access  Admin
@@ -207,6 +353,11 @@ export {
   updateMe,
   updateMyDetails,
   deleteMe,
+  savePost,
+  sendFriendRequest,
+  acceptFriendRequest,
+  deleteFriendRequest,
+  removeFriend,
   getAllUsers,
   createUser,
   getUser,
