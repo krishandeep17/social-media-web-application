@@ -17,17 +17,6 @@ const postSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    comments: [
-      {
-        comment: { type: String, trim: true },
-        image: String,
-        commentBy: {
-          type: mongoose.Schema.ObjectId,
-          ref: "User",
-        },
-        commentedAt: { type: Date, default: new Date() },
-      },
-    ],
   },
   {
     toJSON: { virtuals: true },
@@ -36,9 +25,16 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Virtual Populate
+// Virtual Populate React
 postSchema.virtual("reacts", {
   ref: "React",
+  foreignField: "post",
+  localField: "_id",
+});
+
+// Virtual Populate Comment
+postSchema.virtual("comments", {
+  ref: "Comment",
   foreignField: "post",
   localField: "_id",
 });

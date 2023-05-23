@@ -2,11 +2,14 @@ import React from "../models/reactModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 
-// @desc    Get All Reacts On Post
-// @route   GET /api/v1/posts/:postId/reacts
+// @desc    Get All Reacts On Post OR Get All The Reacts
+// @route   GET /api/v1/posts/:postId/reacts OR GET /api/v1/reacts
 // @access  Private
 const getAllPostReacts = catchAsync(async (req, res, next) => {
-  const reacts = await React.find({ post: req.params.postId });
+  let filter = {};
+  if (req.params.postId) filter = { post: req.params.postId };
+
+  const reacts = await React.find(filter);
 
   res.status(200).json({
     status: "success",
@@ -59,35 +62,6 @@ const createPostReact = catchAsync(async (req, res, next) => {
       });
     }
   }
-});
-
-// @desc    Get All The Reacts
-// @route   GET /api/v1/reacts
-// @access  Admin
-const getAllReacts = catchAsync(async (req, res, next) => {
-  const reacts = await React.find();
-
-  res.status(200).json({
-    status: "success",
-    results: reacts.length,
-    data: {
-      reacts,
-    },
-  });
-});
-
-// @desc    Create New React
-// @route   POST /api/v1/reacts
-// @access  Admin
-const createReact = catchAsync(async (req, res, next) => {
-  const react = await React.create(req.body);
-
-  res.status(201).json({
-    status: "success",
-    data: {
-      react,
-    },
-  });
 });
 
 // @desc    Get React
@@ -148,8 +122,6 @@ const deleteReact = catchAsync(async (req, res, next) => {
 export {
   getAllPostReacts,
   createPostReact,
-  getAllReacts,
-  createReact,
   getReact,
   updateReact,
   deleteReact,

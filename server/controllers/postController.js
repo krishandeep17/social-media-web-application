@@ -45,7 +45,9 @@ const createPost = catchAsync(async (req, res, next) => {
 // @route   GET /api/v1/posts/:postId
 // @access  Private
 const getPost = catchAsync(async (req, res, next) => {
-  const post = await Post.findById(req.params.id).populate("reacts");
+  const post = await Post.findById(req.params.id)
+    .populate("reacts")
+    .populate("comments");
 
   if (!post) {
     return next(new AppError("Post not found.", 404));
@@ -102,43 +104,4 @@ const deletePost = catchAsync(async (req, res, next) => {
   });
 });
 
-// @desc    Comment On Post
-// @route   PATCH /api/v1/posts/:postId/comment
-// @access  Private
-const commentOnPost = catchAsync(async (req, res, next) => {
-  const { comment, image } = req.body;
-
-  const post = await Post.findByIdAndUpdate(
-    req.params.id,
-    {
-      $push: { comments: { comment, image, commentBy: req.user.id } },
-    },
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).populate(
-    "comments.commentBy",
-    "firstName lastName username profilePicture"
-  );
-
-  if (!post) {
-    return next(new AppError("Post not found.", 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      comments: post.comments,
-    },
-  });
-});
-
-export {
-  getAllPosts,
-  createPost,
-  getPost,
-  updatePost,
-  deletePost,
-  commentOnPost,
-};
+export { getAllPosts, createPost, getPost, updatePost, deletePost };

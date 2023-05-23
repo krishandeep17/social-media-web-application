@@ -9,6 +9,7 @@ import errorController from "./controllers/errorController.js";
 import postRouter from "./routes/postRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import reactRouter from "./routes/reactRoutes.js";
+import commentRouter from "./routes/commentRoutes.js";
 
 // HANDLE SYNCHRONOUS ERROR
 process.on("uncaughtException", (err) => {
@@ -34,6 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/reacts", reactRouter);
+app.use("/api/v1/comments", commentRouter);
 
 app.get("/", async (req, res) => {
   res.send("Hello from SERVER!");
